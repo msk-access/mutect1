@@ -1,14 +1,18 @@
-FROM openjdk:7
+FROM fabric8/java-alpine-openjdk7-jre
 
-LABEL maintainer="C. Allan Bolipata (bolipatc@mskcc.org)" \
-      version.image="1.0.0" \
-      version.mutect="1.1.5" \
-      version.java="7" \
-      source.mutect="https://github.com/broadinstitute/mutect/releases/tag/1.1.5"
+MAINTAINER Rashmi Naidu, naidur@mskcc.org
 
-ENV MUTECT_VERSION 1.1.5
-COPY runscript.sh /usr/bin/runscript.sh
-COPY run_test.sh /run_test.sh
-COPY muTect-1.1.5.jar /usr/bin/mutect.jar 
+# default-jdk needed to run MuTect/GATK
+# RUN apt-get update && apt-get install -y default-jdk
 
-RUN chmod +x /usr/bin/runscript.sh
+# Copy over jar and place in /opt/mutect
+RUN mkdir /opt/mutect
+COPY muTect-1.1.5.jar /opt/mutect/
+COPY wrapper.sh /opt/mutect/
+
+# Set WORKDIR to /data -- predefined mount location.
+RUN mkdir /data
+WORKDIR /data
+
+ENTRYPOINT ["sh", "/opt/mutect/wrapper.sh"]
+CMD ["-h"]
